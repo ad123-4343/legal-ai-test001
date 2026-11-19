@@ -15,8 +15,7 @@ jobs:
 
       - name: 安装依赖包
         run: |
-          pip install pytest pytest-html pyyaml requests
-
+          pip install pytest pytest-html pyyaml requests openai
       - name: 执行pytest自动化测试
         run: pytest test_dify.py -v --html=report.html
 
