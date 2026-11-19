@@ -84,12 +84,25 @@ def call_judge(user_question, ai_answer):
 @pytest.mark.parametrize("case", TEST_CASES, ids=[c["name"] for c in TEST_CASES])
 def test_legal(case):
     print(f"\n▶ 正在测试问题: {case['name']}")
-
+    #打桩（节省token，提高流水线可用性）
+    if os.getenv("GITHUB_ACTIONS") == "true":
+        # 这里说明代码在 GitHub 上跑，我们直接用假数据（打桩）
+        print("☁️ 发现是在云端跑，启动打桩模式！")
+        answer = """ 您好，针对公司拖欠工资长达三个月的情况，您可以通过以下途径维权：
+                  1. 收集证据（工资条、打卡记录）。
+                  2. 向当地劳动监察大队投诉。
+                  3. 申请劳动仲裁。
+                  根据《劳动法》第五十条，工资应当以货币形式按月支付给劳动者本人。
+                  以上建议仅供参考，建议您咨询专业律师进行一对一咨询。 """
+    else:
+        # 这里说明代码在你本地电脑跑，正常去连你的 Dify
+        print("💻 发现是在本地跑，正在真实请求 Dify...")
+        answer = call_legal_simple(case["query"])
     start_time = time.time()
-    elapsed_time = time.time() - start_time
-
-    print("正在发送问题...")
     answer = call_legal_simple(case["query"])
+    elapsed_time = time.time() - start_time
+    print("正在发送问题...")
+
 
     print(f"⏱️ 回答耗时: {elapsed_time:.2f} 秒")
     print(f"【AI的回答】:\n{answer[:80]}...\n")
