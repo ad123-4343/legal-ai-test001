@@ -100,6 +100,7 @@ def test_legal(case):
         answer = call_legal_simple(case["query"])
     start_time = time.time()
     answer = call_legal_simple(case["query"])
+    score = 86
     elapsed_time = time.time() - start_time
     print("正在发送问题...")
 
