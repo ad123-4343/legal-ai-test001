@@ -1,0 +1,27 @@
+name: AI自动化测试流水线
+on: push
+
+jobs:
+  test-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取项目代码
+        uses: actions/checkout@v4
+
+      - name: 安装Python环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 安装依赖包
+        run: |
+          pip install pytest pytest-html pyyaml requests
+
+      - name: 执行pytest自动化测试
+        run: pytest test_dify.py -v --html=report.html
+
+      - name: 上传HTML测试报告
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-test-report
+          path: report.html
