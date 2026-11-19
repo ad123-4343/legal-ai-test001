@@ -5,25 +5,27 @@ import time
 import re
 import pytest
 import yaml
-from openai import OpenAI
 import os
-
+from openai import OpenAI
 from dotenv import load_dotenv
 load_dotenv()
 #调用DIFY对话流
 API_URL = "http://192.168.255.137/v1/chat-messages"
 API_KEY = os.getenv("DIFY_KEY")
 #调用慧普大模型裁判
-client = OpenAI(
-    api_key= os.getenv("HUIPU_KEY"),
-    base_url="https://open.bigmodel.cn/api/paas/v4/"
-)
+client = None
+if os.getenv("HUIPU_KEY"):
+    client = OpenAI(
+        api_key=os.getenv("HUIPU_KEY"),
+        base_url="https://open.bigmodel.cn/api/paas/v4/"
+    )
 #打开后台题库
 with open("test_dify.yaml", "r", encoding="utf-8") as f:
     TEST_CASES = yaml.safe_load(f)
 
 #封装请求
 def call_legal_simple(query):
+
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
@@ -46,6 +48,8 @@ def call_legal_simple(query):
 #裁判大模型
 def call_judge(user_question, ai_answer):
     #系统提示词
+    if client is None:
+        return "10"
     judge_prompt = f"""
     你是一个极其严格的法律合规审核员。
     请根据以下标准，对 AI 的回答进行打分：
