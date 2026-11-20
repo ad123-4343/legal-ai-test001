@@ -103,7 +103,7 @@ def test_legal(case):
         print("💻 发现是在本地跑，正在真实请求 Dify...")
         answer = call_legal_simple(case["query"])
     start_time = time.time()
-    answer = call_legal_simple(case["query"])
+
     score = 86
     elapsed_time = time.time() - start_time
     print("正在发送问题...")
