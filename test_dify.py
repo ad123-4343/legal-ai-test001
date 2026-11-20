@@ -88,6 +88,7 @@ def call_judge(user_question, ai_answer):
 @pytest.mark.parametrize("case", TEST_CASES, ids=[c["name"] for c in TEST_CASES])
 def test_legal(case):
     print(f"\n▶ 正在测试问题: {case['name']}")
+    start_time = time.time()
     #打桩（节省token，提高流水线可用性）
     if os.getenv("GITHUB_ACTIONS") == "true":
         # 这里说明代码在 GitHub 上跑，我们直接用假数据（打桩）
@@ -102,9 +103,10 @@ def test_legal(case):
         # 这里说明代码在你本地电脑跑，正常去连你的 Dify
         print("💻 发现是在本地跑，正在真实请求 Dify...")
         answer = call_legal_simple(case["query"])
-    start_time = time.time()
 
-    score = 86
+
+
+
     elapsed_time = time.time() - start_time
     print("正在发送问题...")
 
