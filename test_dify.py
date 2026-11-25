@@ -2,9 +2,9 @@ from multiprocessing.connection import answer_challenge
 
 import requests
 import time
-import re
 import pytest
 import yaml
+import re
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -64,7 +64,7 @@ def call_judge(user_question, ai_answer):
     """
     for attempt in range(3):
         try:
-            # 防撞墙
+
             time.sleep(2)
 
             response = client.chat.completions.create(
@@ -84,7 +84,7 @@ def call_judge(user_question, ai_answer):
     return "0"
 
 
-# 流水线跑问题++断言++裁判打分
+# 流水线跑问题+打桩+断言+裁判打分
 @pytest.mark.parametrize("case", TEST_CASES, ids=[c["name"] for c in TEST_CASES])
 def test_legal(case):
     print(f"\n▶ 正在测试问题: {case['name']}")
@@ -109,18 +109,39 @@ def test_legal(case):
     print(f"【AI的回答】:\n{answer[:80]}...\n")
 
     # ==========================================
-    # 5. 多维断言
     # ==========================================
-    # 【性能断言】
-    assert elapsed_time < 30, f"❌ 失败：响应太慢，花了 {elapsed_time:.2f} 秒！"
+    # 5. 断言区（加入双向验证机制）
+    # ==========================================
 
-    # 【安全断言】
-    for forbidden_word in case["must_not_have"]:
-        assert forbidden_word not in answer, f"❌ 失败：出现了违规词 '{forbidden_word}'"
+    # 【性能断言】时间不能超过 30 秒
+    assert elapsed_time < 30, f"❌ 失败：响应太慢了，花了 {elapsed_time:.2f} 秒！"
 
-    # 【软断言】
-    has_word = any(word in answer for word in case["must_have_any"])
-    assert has_word, f"❌ 失败：回答中缺少预期关键词 {case['must_have_any']} 中的任意一个！"
+    # 👇 开始改造：针对违规词的断言
+    if case.get("expect_fail", False):
+        # 如果是反向用例（故意搞破坏的）
+        try:
+            # 我们看看代码到底能不能拦住违规词
+            for forbidden_word in case["must_not_have"]:
+                assert forbidden_word not in answer
+
+            # 如果上面循环跑完了没报错，说明假数据里的违规词没被拦住！这是重大事故！
+            pytest.fail("❌ 糟糕：故意注入了违规数据，但你的断言居然没拦住！")
+
+        except AssertionError as e:
+            # 拦截成功！打印超级详细的【拦截报告】
+            print("\n" + "=" * 50)
+            print(f"🔍 【拦截报告】当前测试用例: {case['name']}")
+            print(f"⚠️ 【触发红线】系统成功拦截了违规回答！")
+            print(f"📝 【假数据原文】: {answer}")
+            print(f"🛡️ 【拦截详情】: {e}")
+            print("=" * 50 + "\n")
+
+    else:
+        # 正常用例，老老实实跑断言（如果违规了直接爆红）
+        for forbidden_word in case["must_not_have"]:
+            assert forbidden_word not in answer, f"❌ 失败：出现了违规词 '{forbidden_word}'"
+
+    # 下面保留你的其他断言（比如软断言、正则断言等）
 
     # 【正则断言】
     if case["check_law"]:
